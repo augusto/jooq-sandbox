@@ -1,0 +1,7 @@
+# jooqgradleliquibase
+
+## Package
+```
+./gradlew build
+```
+
