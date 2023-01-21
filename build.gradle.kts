@@ -1,3 +1,5 @@
+import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
+
 buildscript {
     repositories {
         mavenCentral()
@@ -15,6 +17,7 @@ repositories {
 }
 plugins {
     kotlin("jvm") version "1.8.0"
+    id("org.liquibase.gradle") version "2.0.4"
     application
 }
 
@@ -37,8 +40,43 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+
+    liquibaseRuntime("org.postgresql:postgresql:42.5.1")
+    liquibaseRuntime("org.liquibase:liquibase-core:4.4.3")
+    liquibaseRuntime("org.yaml:snakeyaml:1.29")
 }
 
 application {
     mainClass.set("com.example.jooq.MainKt")
+}
+
+
+task<Task>("startPostgres") {
+    doLast {
+        val pg = EmbeddedPostgres.builder()
+            .setPort(5432)
+            .start()
+        println("Setting up database")
+        val datasource = pg.postgresDatabase
+        datasource.connection.use {conn->
+            conn.createStatement().use {st->
+                st.execute("CREATE DATABASE jooqliquibase")
+            }
+        }
+    }
+}
+// Very unsafe
+task<Exec>("stopPostgres") {
+    commandLine("killall", "postgres")
+}
+
+liquibase {
+    activities.register("main") {
+        this.arguments = mapOf(
+            "changeLogFile" to "src/main/resources/liquibase-root-changelog.xml",
+            "url" to "jdbc:postgresql://localhost:5432/jooqliquibase",
+            "username" to "postgres",
+            "password" to "postgres"
+        )
+    }
 }
