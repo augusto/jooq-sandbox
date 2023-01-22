@@ -11,7 +11,7 @@
             </column>
             <column name="firstname" type="varchar(50)"/>
             <column name="lastname" type="varchar(50)"/>
-            <column name="active" type="boolean" defaultValueBoolean="true"/>
+            <column name="active" type="boolean"/>
         </createTable>
     </changeSet>
 </databaseChangeLog>

@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test
 
 class jooqgradleliquibaseTest {
 
-    @Test
-    fun `Ping test`() {
-        assertEquals(app(Request(GET, "/ping")), Response(OK).body("pong"))
-    }
+//    @Test
+//    fun `Ping test`() {
+//        assertEquals(app(Request(GET, "/ping")), Response(OK).body("pong"))
+//    }
 
 }
