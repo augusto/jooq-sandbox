@@ -1,11 +1,13 @@
 package com.example.jooq
 
 import com.example.jooq.db.tables.Actor.ACTOR
+import com.example.jooq.db.tables.records.ActorRecord
 import com.example.jooq.domain.Actor
 import org.jooq.Record
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.hasSize
+import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
 
@@ -26,6 +28,9 @@ class QueryExamplesTest {
     @Test
     fun `Fetch one actor`() {
         Database.withJooq { create ->
+            // select "public"."actor"."actor_id", "public"."actor"."first_name", "public"."actor"."last_name", "public"."actor"."last_update"
+            // from "public"."actor"
+            // where "public"."actor"."actor_id" = ?
             val selectActorById = create.select()
                 .from(ACTOR)
                 .where(ACTOR.ACTOR_ID.eq(1))
@@ -45,6 +50,9 @@ class QueryExamplesTest {
     fun `Query actors and map to domain classes`() {
 
         Database.withJooq { create ->
+            // select "public"."actor"."actor_id", "public"."actor"."first_name", "public"."actor"."last_name", "public"."actor"."last_update"
+            // from "public"."actor"
+            // fetch next ? rows only
             val actors = create.select()
                 .from(ACTOR)
                 .limit(10)
@@ -60,16 +68,18 @@ class QueryExamplesTest {
     }
 
     @Test
-    fun `Record API (row)`() {
+    fun `Using the select API returns Record`() {
         Database.withJooq { create ->
             val selectActorById = create.select()
                 .from(ACTOR)
                 .where(ACTOR.ACTOR_ID.eq(1))
 
-            var actor: Record = selectActorById.fetchSingle()
+            var actorAsRecord: Record = selectActorById.fetchSingle()
+            var actorAsActiveRecord : ActorRecord = create.fetchSingle(ACTOR, ACTOR.ACTOR_ID.eq(1))
 
-            actor[ACTOR.LAST_NAME] = "New Name"
-            expectThat(actor.changed()).isTrue()
+            expectThat(actorAsRecord[ACTOR.ACTOR_ID]).isEqualTo(actorAsActiveRecord.actorId)
+            expectThat(actorAsRecord[ACTOR.FIRST_NAME]).isEqualTo(actorAsActiveRecord.firstName)
+            expectThat(actorAsRecord[ACTOR.LAST_NAME]).isEqualTo(actorAsActiveRecord.lastName)
         }
     }
 }
