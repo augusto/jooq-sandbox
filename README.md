@@ -9,8 +9,6 @@ Uses embedded postgres (not ideal) rather than a docker container to run a local
 ./gradlew startPostgres
 # Update the schema using liquibase
 ./gradlew update
-# Insert static data from Sakila
-cat src/main/resources/sakila/postgres-sakila-insert-data.sql |  psql -h localhost -p 5432 -U postgres jooqliquibase
 # Run tests (which executes the task generateJooq) 
 ./gradlew build  
 # Stop the DB (won't clean the data in /tmp)
@@ -18,4 +16,4 @@ cat src/main/resources/sakila/postgres-sakila-insert-data.sql |  psql -h localho
 ```
 
 ## Jooq Examples
-Check the tests for examples of how to use Jooq
+Check the tests for examples of how to use Jooq.
