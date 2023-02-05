@@ -46,9 +46,13 @@ dependencies {
     implementation("org.postgresql:postgresql:42.5.1")
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("org.jooq:jooq:3.17.7")
+    implementation("org.jooq:jooq-kotlin:3.17.7")
     implementation("org.jooq:jooq-postgres-extensions:3.17.7")
+    implementation("ch.qos.logback:logback-classic:1.4.5")
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+    testImplementation("io.strikt:strikt-core:0.34.0")
 
     liquibaseRuntime("org.postgresql:postgresql:42.5.1")
     liquibaseRuntime("org.liquibase:liquibase-core:4.4.3")
@@ -78,6 +82,7 @@ task<Task>("startPostgres") {
 // Very unsafe
 task<Exec>("stopPostgres") {
     commandLine("killall", "postgres")
+    isIgnoreExitValue = true
 }
 
 liquibase {
@@ -110,26 +115,30 @@ jooq {
                     name = "org.jooq.codegen.DefaultGenerator"
                     database.apply {
                         name = "org.jooq.meta.postgres.PostgresDatabase"
-//                        inputCatalog = "postgres"
                         inputSchema = "public"
-                        forcedTypes = listOf(
-                            ForcedType().apply {
-                                name = "varchar"
-                                includeExpression = ".*"
-                                includeTypes = "JSONB?"
-                            },
-                            ForcedType().apply {
-                                name = "varchar"
-                                includeExpression = ".*"
-                                includeTypes = "INET"
-                            }
-                        )
+                        excludes = ".*_[0-9]+" // Ignore partitioned tables
+                        withIncludeSequences(true)
+                        withIncludeSystemSequences(true)
+                        recordVersionFields = "version"
+//                        forcedTypes = listOf(
+//                            ForcedType().apply {
+//                                name = "varchar"
+//                                includeExpression = ".*"
+//                                includeTypes = "JSONB?"
+//                            },
+//                            ForcedType().apply {
+//                                name = "varchar"
+//                                includeExpression = ".*"
+//                                includeTypes = "INET"
+//                            }
+//                        )
                     }
                     generate.apply {
-                        isDeprecated = false
-                        isRecords = false
-                        isImmutablePojos = false
-                        isFluentSetters = false
+                        isSequences = true
+//                        isDeprecated = false
+//                        isRecords = false
+//                        isImmutablePojos = false
+//                        isFluentSetters = false
                     }
                     target.apply {
                         packageName = "com.example.jooq.db"
