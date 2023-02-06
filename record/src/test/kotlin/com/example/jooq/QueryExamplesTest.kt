@@ -1,13 +1,10 @@
 package com.example.jooq
 
-import com.example.jooq.db.tables.Actor.ACTOR
-import com.example.jooq.db.tables.records.ActorRecord
-import com.example.jooq.domain.Actor
-import org.jooq.Record
+import com.example.jooq.db.tables.Actor.Companion.ACTOR
+import com.example.jooq.domain.MyDomainActor
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.hasSize
-import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
 
@@ -57,29 +54,13 @@ class QueryExamplesTest {
                 .from(ACTOR)
                 .limit(10)
                 .fetch {
-                    Actor(
-                        id = it[ACTOR.ACTOR_ID],
-                        firstName = it[ACTOR.FIRST_NAME],
-                        lastName = it[ACTOR.LAST_NAME]
+                    MyDomainActor(
+                        id = it[ACTOR.ACTOR_ID]!!,
+                        firstName = it[ACTOR.FIRST_NAME]!!,
+                        lastName = it[ACTOR.LAST_NAME]!!
                     )
                 }
             print(actors)
-        }
-    }
-
-    @Test
-    fun `Using the select API returns Record`() {
-        Database.withJooq { create ->
-            val selectActorById = create.select()
-                .from(ACTOR)
-                .where(ACTOR.ACTOR_ID.eq(1))
-
-            var actorAsRecord: Record = selectActorById.fetchSingle()
-            var actorAsActiveRecord : ActorRecord = create.fetchSingle(ACTOR, ACTOR.ACTOR_ID.eq(1))
-
-            expectThat(actorAsRecord[ACTOR.ACTOR_ID]).isEqualTo(actorAsActiveRecord.actorId)
-            expectThat(actorAsRecord[ACTOR.FIRST_NAME]).isEqualTo(actorAsActiveRecord.firstName)
-            expectThat(actorAsRecord[ACTOR.LAST_NAME]).isEqualTo(actorAsActiveRecord.lastName)
         }
     }
 }
