@@ -35,6 +35,16 @@ object Database {
         }
     }
 
+    fun <T> withJooq(customSettings: Settings, block: (DSLContext) -> T): T {
+        datasource.connection.use { conn ->
+            val dsl = DSL.using(conn, SQLDialect.POSTGRES, customSettings)
+
+            return dsl.transactionResult { tx:Configuration ->
+                block(tx.dsl())
+            }
+        }
+    }
+
     fun defaultSettings(): Settings {
         // Requiered to enable optimistic locking as it's disabled by default
         return Settings()

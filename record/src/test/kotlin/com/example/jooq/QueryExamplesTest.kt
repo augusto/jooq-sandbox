@@ -1,7 +1,6 @@
 package com.example.jooq
 
 import com.example.jooq.db.tables.Actor.Companion.ACTOR
-import com.example.jooq.domain.MyDomainActor
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.hasSize
@@ -45,6 +44,7 @@ class QueryExamplesTest {
 
     @Test
     fun `Query actors and map to domain classes`() {
+        data class TestActor(val id:Int, val firstName:String, val lastName: String)
 
         Database.withJooq { create ->
             // select "public"."actor"."actor_id", "public"."actor"."first_name", "public"."actor"."last_name", "public"."actor"."last_update"
@@ -54,7 +54,7 @@ class QueryExamplesTest {
                 .from(ACTOR)
                 .limit(10)
                 .fetch {
-                    MyDomainActor(
+                    TestActor(
                         id = it[ACTOR.ACTOR_ID]!!,
                         firstName = it[ACTOR.FIRST_NAME]!!,
                         lastName = it[ACTOR.LAST_NAME]!!
