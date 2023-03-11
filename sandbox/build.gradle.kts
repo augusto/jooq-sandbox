@@ -1,5 +1,7 @@
 import nu.studer.gradle.jooq.JooqEdition
 import org.jooq.meta.jaxb.Logging
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+import kotlin.math.max
 
 buildscript {
     repositories {
@@ -22,8 +24,17 @@ kotlin {
     jvmToolchain(17)
 }
 
+tasks.named<KotlinCompilationTask<*>>("compileKotlin") {
+    compilerOptions.freeCompilerArgs.add("-Xcontext-receivers")
+}
+tasks.named<KotlinCompilationTask<*>>("compileTestKotlin") {
+    compilerOptions.freeCompilerArgs.add("-Xcontext-receivers")
+}
+
+
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    maxParallelForks = max(Runtime.getRuntime().availableProcessors() / 2, 1)
 }
 
 dependencies {
@@ -58,7 +69,7 @@ liquibase {
             "changeLogFile" to "src/main/resources/liquibase-root-changelog.xml",
             "url" to "jdbc:postgresql://localhost:5432/sandbox",
             "username" to "postgres",
-            "password" to "postgres"
+            "password" to "postgres",
         )
     }
 }

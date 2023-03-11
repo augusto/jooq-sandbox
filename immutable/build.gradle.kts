@@ -1,5 +1,6 @@
 import nu.studer.gradle.jooq.JooqEdition
 import org.jooq.meta.jaxb.Logging
+import kotlin.math.max
 
 buildscript {
     repositories {
@@ -24,6 +25,7 @@ kotlin {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    maxParallelForks = max(Runtime.getRuntime().availableProcessors() / 2, 1)
 }
 
 dependencies {
@@ -56,7 +58,7 @@ liquibase {
     activities.register("main") {
         this.arguments = mapOf(
             "changeLogFile" to "src/main/resources/liquibase-root-changelog.xml",
-            "url" to "jdbc:postgresql://localhost:5432/activerecord",
+            "url" to "jdbc:postgresql://localhost:5432/immutable",
             "username" to "postgres",
             "password" to "postgres"
         )
@@ -73,12 +75,13 @@ jooq {
                 logging = Logging.WARN
                 jdbc.apply {
                     driver = "org.postgresql.Driver"
-                    url = "jdbc:postgresql://localhost:5432/activerecord"
+                    url = "jdbc:postgresql://localhost:5432/immutable"
                     user = "postgres"
                     password = "postgres"
                 }
                 generator.apply {
-                    name = "org.jooq.codegen.JavaGenerator"
+//                    name = "org.jooq.codegen.JavaGenerator"
+                    name = "org.jooq.codegen.KotlinGenerator"
                     database.apply {
                         name = "org.jooq.meta.postgres.PostgresDatabase"
                         inputSchema = "public"
@@ -100,10 +103,12 @@ jooq {
 //                        )
                     }
                     generate.apply {
-                        // Enable active record (UpdatableRecord) and mutable pojos/pokos
                         isSequences = true
-                        isRecords = true
-                        isImmutablePojos = false
+                        // do not generate mutable active record classes
+                        isRecords = false
+                        isPojos = true
+                        isImmutablePojos = true
+                        isPojosAsKotlinDataClasses = true
                     }
                     target.apply {
                         packageName = "com.example.jooq.db"

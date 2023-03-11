@@ -9,7 +9,6 @@ import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
-import java.security.SecureRandom
 import java.util.*
 
 /**

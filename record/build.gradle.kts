@@ -1,5 +1,6 @@
 import nu.studer.gradle.jooq.JooqEdition
 import org.jooq.meta.jaxb.Logging
+import kotlin.math.max
 
 buildscript {
     repositories {
@@ -24,6 +25,7 @@ kotlin {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    maxParallelForks = max(Runtime.getRuntime().availableProcessors() / 2, 1)
 }
 
 dependencies {
@@ -78,7 +80,6 @@ jooq {
                     password = "postgres"
                 }
                 generator.apply {
-//                    name = "org.jooq.codegen.JavaGenerator"
                     name = "org.jooq.codegen.KotlinGenerator"
                     database.apply {
                         name = "org.jooq.meta.postgres.PostgresDatabase"
@@ -101,12 +102,10 @@ jooq {
 //                        )
                     }
                     generate.apply {
+                        // Enable records (UpdatableRecord) and mutable pojos/pokos
                         isSequences = true
-                        // do not generate mutable active record classes
-                        isRecords = false
-                        isPojos = true
-                        isImmutablePojos = true
-                        isPojosAsKotlinDataClasses = true
+                        isRecords = true
+                        isImmutablePojos = false
                     }
                     target.apply {
                         packageName = "com.example.jooq.db"

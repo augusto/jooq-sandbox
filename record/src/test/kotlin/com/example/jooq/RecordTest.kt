@@ -4,22 +4,21 @@ import com.example.jooq.db.tables.Actor.ACTOR
 import com.example.jooq.db.tables.records.ActorRecord
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
-import strikt.assertions.isGreaterThan
-import strikt.assertions.isLessThan
-import strikt.assertions.isNotNull
-import strikt.assertions.withNotNull
-import java.time.LocalDateTime
+import strikt.assertions.*
 import java.time.LocalDateTime.now
 
 /**
- * When using Active Record (Generator setting generator.generate.isRecords), jooq will
- * create an active record which can be used to insert/update records back to the DB.
+ * When using Record (Generator setting generator.generate.isRecords), jooq will create a Record classes
+ * (Row Data Gateway or similar to an Active Record) which can be used to insert/update records back to the DB.
  *
- * @see <a href="https://www.martinfowler.com/eaaCatalog/activeRecord.html">Data Source Architectural Patterns: Active record in Patterns of Enterprise Application Architecture.</a>
+ * Records are created using mutable Java classes, so the nullable data is lost in Kotlin.
+ *
+ * @see <a href="https://www.martinfowler.com/eaaCatalog/activeRecord.html">Active record in Patterns of Enterprise Application Architecture.</a>
+ * @see <a href="https://martinfowler.com/eaaCatalog/rowDataGateway.html">Row Data Gateway in Patterns of Enterprise Application Architecture.</a>
  */
-class ActiveRecordTest {
+class RecordTest {
     @Test
-    fun `can create a new active record instance`() {
+    fun `can create a new record instance`() {
         val settings = Database.defaultSettings()
             .withReturnAllOnUpdatableRecord(true)
 
@@ -50,7 +49,7 @@ class ActiveRecordTest {
     }
 
     @Test
-    fun `can convert attach a record and store it`() {
+    fun `can attach a record and store it`() {
         val actor = ActorRecord(null, "Amy", "Adams", null)
 
         val settings = Database.defaultSettings()
@@ -58,12 +57,33 @@ class ActiveRecordTest {
 
         Database.withJooq(settings) { dsl ->
             dsl.attach(actor)
-            // not great, but reset the fields so the defaults are taken from the db.
+            // not great, but reset the fields so the defaults are computed in the db.
             actor.reset(ACTOR.ACTOR_ID)
             actor.reset(ACTOR.LAST_UPDATE)
             actor.store()
 
             println(actor)
+        }
+    }
+
+    @Test
+    fun `can delete a record`() {
+
+        val newActorId= Database.withJooq { dsl ->
+            val actor = dsl.newRecord(ACTOR)
+            actor.firstName = "Joe"
+            actor.lastName = "Blogs"
+            actor.store()
+
+            actor.actorId!!
+        }
+
+        Database.withJooq { dsl ->
+            val actor = dsl.fetchSingle(ACTOR, ACTOR.ACTOR_ID.eq(newActorId))
+            actor.delete()
+
+            val maybeActor = dsl.fetchOne(ACTOR, ACTOR.ACTOR_ID.eq(newActorId))
+            expectThat(maybeActor).isNull()
         }
     }
 }

@@ -9,13 +9,12 @@ import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import java.util.concurrent.TimeUnit
 
-
 object Database {
     private val settings = defaultSettings()
 
     private val datasource = let {
         val config = HikariConfig()
-        config.jdbcUrl = "jdbc:postgresql://localhost:5432/activerecord"
+        config.jdbcUrl = "jdbc:postgresql://localhost:5432/record"
         config.username = "postgres"
         config.password = "postgres"
         config.maximumPoolSize = 2
@@ -29,7 +28,7 @@ object Database {
         datasource.connection.use { conn ->
             val dsl = DSL.using(conn, SQLDialect.POSTGRES, settings)
 
-            return dsl.transactionResult { tx:Configuration ->
+            return dsl.transactionResult { tx: Configuration ->
                 block(tx.dsl())
             }
         }
@@ -39,18 +38,15 @@ object Database {
         datasource.connection.use { conn ->
             val dsl = DSL.using(conn, SQLDialect.POSTGRES, customSettings)
 
-            return dsl.transactionResult { tx:Configuration ->
+            return dsl.transactionResult { tx: Configuration ->
                 block(tx.dsl())
             }
         }
     }
 
-    fun defaultSettings(): Settings {
-        // Requiered to enable optimistic locking as it's disabled by default
-        return Settings()
-            .withUpdateRecordVersion(true) // Defaults to true
-            .withUpdateRecordTimestamp(true) // Defaults to true
-            .withExecuteWithOptimisticLocking(true) // Defaults to false
-            .withExecuteWithOptimisticLockingExcludeUnversioned(false) // Defaults to false
-    }
+    fun defaultSettings(): Settings = Settings()
+        .withUpdateRecordVersion(true) // Defaults to true
+        .withUpdateRecordTimestamp(true) // Defaults to true
+        .withExecuteWithOptimisticLocking(true) // Defaults to false
+        .withExecuteWithOptimisticLockingExcludeUnversioned(false) // Defaults to false
 }

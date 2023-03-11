@@ -15,6 +15,6 @@ Uses embedded postgres (not ideal) rather than a docker container to run a local
 
 ## Jooq Examples
 There are 3 modules with different configurations
-* activerecord: Has active record and mutable pojos enabled.
-* record: Has active record and mutable pojos disabled.
+* record: Has records and mutable pojos enabled.
+* immutable: Has record disabled and creates immutable pojos.
 * sandbox: Extra module to try configurations and settings - play with it!

@@ -15,7 +15,7 @@ object Database {
 
     private val datasource = let {
         val config = HikariConfig()
-        config.jdbcUrl = "jdbc:postgresql://localhost:5432/activerecord"
+        config.jdbcUrl = "jdbc:postgresql://localhost:5432/sandbox"
         config.username = "postgres"
         config.password = "postgres"
         config.maximumPoolSize = 2

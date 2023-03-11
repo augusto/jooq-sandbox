@@ -26,8 +26,8 @@ task<Task>("startPostgres") {
         val datasource = pg.postgresDatabase
         datasource.connection.use { conn ->
             conn.createStatement().use { st ->
-                st.execute("CREATE DATABASE activerecord")
                 st.execute("CREATE DATABASE record")
+                st.execute("CREATE DATABASE immutable")
                 st.execute("CREATE DATABASE sandbox")
             }
         }
@@ -40,8 +40,8 @@ task<Exec>("stopPostgres") {
 }
 
 task<Task>("generateJooq") {
-    dependsOn("activerecord:update")
-    dependsOn("activerecord:generateJooq")
+    dependsOn("immutable:update")
+    dependsOn("immutable:generateJooq")
     dependsOn("record:update")
     dependsOn("record:generateJooq")
     dependsOn("sandbox:update")
