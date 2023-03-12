@@ -12,7 +12,7 @@ import strikt.assertions.isEqualTo
 class NavigationTest {
     @Test
     fun `Can navigate Many to One foreign keys`() {
-        Database.withJooq { dsl->
+        Database.withJooq { dsl ->
 
             val film = dsl.fetchSingle(FILM, FILM.FILM_ID.eq(5))
 
@@ -24,7 +24,7 @@ class NavigationTest {
 
     @Test
     fun `Can navigate One to Many foreign keys`() {
-        Database.withJooq { dsl->
+        Database.withJooq { dsl ->
             val film = dsl.fetchSingle(FILM, FILM.FILM_ID.eq(5))
 
             val filmActor = film.fetchChildren(FILM_ACTOR__FILM_ACTOR_FILM_ID_FKEY)
