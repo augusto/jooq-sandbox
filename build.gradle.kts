@@ -28,7 +28,7 @@ task<Task>("startPostgres") {
             conn.createStatement().use { st ->
                 st.execute("CREATE DATABASE record")
                 st.execute("CREATE DATABASE immutable")
-                st.execute("CREATE DATABASE sandbox")
+                st.execute("CREATE DATABASE java")
             }
         }
     }
@@ -44,6 +44,6 @@ task<Task>("generateJooq") {
     dependsOn("immutable:generateJooq")
     dependsOn("record:update")
     dependsOn("record:generateJooq")
-    dependsOn("sandbox:update")
-    dependsOn("sandbox:generateJooq")
+    dependsOn("java:update")
+    dependsOn("java:generateJooq")
 }
