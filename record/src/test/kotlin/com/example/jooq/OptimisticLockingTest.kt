@@ -1,7 +1,7 @@
 package com.example.jooq
 
-import com.example.jooq.db.tables.Actor.ACTOR
-import com.example.jooq.db.tables.OptimisticLocking.OPTIMISTIC_LOCKING
+import com.example.jooq.db.tables.references.ACTOR
+import com.example.jooq.db.tables.references.OPTIMISTIC_LOCKING
 import org.jooq.exception.DataChangedException
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory

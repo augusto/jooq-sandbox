@@ -105,7 +105,9 @@ jooq {
                         // Enable records (UpdatableRecord) and mutable pojos/pokos
                         isSequences = true
                         isRecords = true
+                        isPojos = true
                         isImmutablePojos = false
+                        isPojosAsKotlinDataClasses = true
                     }
                     target.apply {
                         packageName = "com.example.jooq.db"

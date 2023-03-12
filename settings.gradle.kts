@@ -1,2 +1,2 @@
 rootProject.name = "jooqgradleliquibase"
-include("record", "immutable", "sandbox")
+include("immutable", "record", "sandbox")

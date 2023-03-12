@@ -1,7 +1,7 @@
 package com.example.jooq
 
-import com.example.jooq.db.tables.Actor.ACTOR
 import com.example.jooq.db.tables.records.ActorRecord
+import com.example.jooq.db.tables.references.ACTOR
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.*
@@ -35,41 +35,66 @@ class RecordTest {
             // Jooq by default only refreshes the PK. To refresh
             // all values, set `Settings.withReturnAllOnUpdatableRecord(true)`
             javier.store()
+            javier.actorId
 
-            expectThat(javier)
-                .and { get { actorId }.isGreaterThan(0) }
-                .and {
-                    get { lastUpdate }
-                        .isGreaterThan(now().minusSeconds(5))
-                        .isLessThan(now())
-                }
+            expectThat(javier.actorId)
+                .isNotNull()
+                .isGreaterThan(0)
+            expectThat(javier.lastUpdate)
+                .isNotNull()
+                .isIn(now().minusSeconds(5).. now())
 
             println(javier)
         }
     }
 
     @Test
-    fun `can attach a record and store it`() {
-        val actor = ActorRecord(null, "Amy", "Adams", null)
+    fun `can attach a record and insert it`() {
+        val actor = ActorRecord()
+        actor.firstName = "Amy"
+        actor.lastName = "Adams"
 
         val settings = Database.defaultSettings()
             .withReturnAllOnUpdatableRecord(true)
 
         Database.withJooq(settings) { dsl ->
             dsl.attach(actor)
-            // not great, but reset the fields so the defaults are computed in the db.
-            actor.reset(ACTOR.ACTOR_ID)
-            actor.reset(ACTOR.LAST_UPDATE)
-            actor.store()
+            actor.insert()
 
             println(actor)
         }
     }
 
     @Test
+    fun `can create a new record from ta pojo`() {
+        val actor = com.example.jooq.db.tables.pojos.Actor(
+            firstName = "Jeremy",
+            lastName = "Renner"
+        )
+
+        val settings = Database.defaultSettings()
+            .withReturnAllOnUpdatableRecord(true)
+
+        Database.withJooq(settings) { dsl ->
+            val newActor = dsl.newRecord(ACTOR, actor)
+            dsl.attach(newActor)
+            newActor.insert()
+
+            expectThat(newActor.actorId)
+                .isNotNull()
+                .isGreaterThan(0)
+            expectThat(newActor.lastUpdate)
+                .isNotNull()
+                .isIn(now().minusSeconds(5).. now())
+
+            println(newActor)
+        }
+    }
+
+    @Test
     fun `can delete a record`() {
 
-        val newActorId= Database.withJooq { dsl ->
+        val newActorId = Database.withJooq { dsl ->
             val actor = dsl.newRecord(ACTOR)
             actor.firstName = "Joe"
             actor.lastName = "Blogs"
