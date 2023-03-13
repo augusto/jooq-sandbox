@@ -6,6 +6,7 @@ import com.example.jooq.db.tables.pojos.Language
 import com.example.jooq.db.tables.references.FILM
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
+import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 
 //Navigation only works with Records
@@ -29,7 +30,7 @@ class NavigationTest {
 
             val filmActor = film.fetchChildren(FILM_ACTOR__FILM_ACTOR_FILM_ID_FKEY)
 
-            expectThat(filmActor.size).isEqualTo(5)
+            expectThat(filmActor).hasSize(5)
         }
     }
 }

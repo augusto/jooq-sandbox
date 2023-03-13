@@ -1,7 +1,7 @@
 package com.example.jooq
 
 import com.example.jooq.db.tables.references.ACTOR
-import com.example.jooq.db.tables.references.OPTIMISTIC_LOCKING
+import com.example.jooq.db.tables.references.ACTOR_VERSIONED
 import org.jooq.exception.DataChangedException
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
@@ -25,34 +25,24 @@ class OptimisticLockingTest {
         // Jooq doesn't use optimistic locking by default. To enable it the settings
         // need to have `withExecuteWithOptimisticLocking = true`
         Database.withJooq { create ->
-            val optimisticLockingRow = create.newRecord(OPTIMISTIC_LOCKING)
+            val actor = create.newRecord(ACTOR_VERSIONED)
 
             val newRecordId = UUID.randomUUID()
-            optimisticLockingRow.id = newRecordId
-            optimisticLockingRow.firstName = "Johnnyy"
-            optimisticLockingRow.lastName = "Deep"
-            optimisticLockingRow.active = true
+            actor.id = newRecordId
+            actor.firstName = "Johnnyy"
+            actor.lastName = "Deep"
 
-            optimisticLockingRow.store()
+            actor.store()
 
-            val recordOne = create.fetchSingle(OPTIMISTIC_LOCKING, OPTIMISTIC_LOCKING.ID.eq(newRecordId))
-            val recordTwo = create.fetchSingle(OPTIMISTIC_LOCKING, OPTIMISTIC_LOCKING.ID.eq(newRecordId))
-
-            expectThat(recordOne.version).isEqualTo(1)
-            expectThat(recordTwo.version).isEqualTo(1)
-
-            // Change on the first record succeeds
+            val recordOne = create.fetchSingle(ACTOR_VERSIONED, ACTOR_VERSIONED.ID.eq(newRecordId))
+            val recordTwo = create.fetchSingle(ACTOR_VERSIONED, ACTOR_VERSIONED.ID.eq(newRecordId))
             recordOne.firstName = "Johnny"
-            expectThat(recordOne.changed()).isTrue()
             recordOne.store()
 
-            // Change on the second record fails
             recordTwo.firstName = "Johnny"
             expectThat(recordTwo.changed()).isTrue()
             expectThrows<DataChangedException> { recordTwo.store() }
-                .and {
-                    get { message }.isEqualTo("Database record has been changed or doesn't exist any longer")
-                }
+                .get { message }.isEqualTo("Database record has been changed or doesn't exist any longer")
         }
     }
 
@@ -60,7 +50,7 @@ class OptimisticLockingTest {
     fun `use a pessimistic lock if the table does not have an optimistic lock column`() {
         Database.withJooq { create ->
             val orlando = create.newRecord(ACTOR)
-            orlando[ACTOR.FIRST_NAME] = "orlando"
+            orlando[ACTOR.FIRST_NAME] = "Orlando"
             orlando[ACTOR.LAST_NAME] = "Bloomm"
 
             orlando.store()

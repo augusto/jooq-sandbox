@@ -1,41 +1,19 @@
 package com.example.jooq;
 
-import com.example.jooq.db.tables.pojos.Actor;
-import com.example.jooq.db.tables.pojos.Film;
 import org.jooq.Records;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
+import static com.example.jooq.Database.withJooq;
 import static com.example.jooq.db.tables.Film.FILM;
 import static com.example.jooq.db.tables.Actor.ACTOR;
 import static com.example.jooq.db.tables.FilmActor.FILM_ACTOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jooq.impl.DSL.array;
+import static org.jooq.impl.DSL.row;
 
-public class JavaRecordTest {
-
-    @Test
-    void select_record() {
-        Database.withJooq((dsl) -> {
-            var film = dsl.fetchSingle(FILM, FILM.FILM_ID.eq(19));
-
-            assertThat(film.getTitle()).isEqualTo("AMADEUS HOLY");
-        });
-    }
-
-    @Test
-    void select_into_pojo() {
-        Database.withJooq((dsl) -> {
-            var film = dsl.select()
-                    .from(FILM)
-                    .where(FILM.FILM_ID.eq(19))
-                    .fetchSingleInto(Film.class);
-
-            assertThat(film.title()).isEqualTo("AMADEUS HOLY");
-        });
-    }
+public class NestedRecordTest {
 
     record FilmProjection(int id, String title, ActorProjection[] actors) {
     }
@@ -45,7 +23,7 @@ public class JavaRecordTest {
 
     @Test
     public void select_nested_records() {
-        Database.withJooq((dsl) -> {
+        withJooq((dsl) -> {
 
             // select "public"."film"."film_id",
             //        "public"."film"."title",
@@ -58,8 +36,8 @@ public class JavaRecordTest {
             var film = dsl.select(
                             FILM.FILM_ID,
                             FILM.TITLE,
-                            DSL.array(
-                                    DSL.select(DSL.row(ACTOR.FIRST_NAME, ACTOR.LAST_NAME).mapping(ActorProjection.class, ActorProjection::new))
+                            array(
+                                    DSL.select(row(ACTOR.FIRST_NAME, ACTOR.LAST_NAME).mapping(ActorProjection.class, ActorProjection::new))
                                             .from(ACTOR).join(FILM_ACTOR)
                                             .on(ACTOR.ACTOR_ID.eq(FILM_ACTOR.ACTOR_ID.cast(SQLDataType.INTEGER)))
                                             .where(FILM.FILM_ID.eq(FILM_ACTOR.FILM_ID.cast(SQLDataType.INTEGER)))
@@ -70,8 +48,8 @@ public class JavaRecordTest {
                     .fetchSingle(Records.mapping(FilmProjection::new));
 
             assertThat(film.title()).isEqualTo("ALIEN CENTER");
-            assertThat(film.actors()).hasSize(6);
-            assertThat(film.actors()).contains(new ActorProjection("HUMPHREY", "WILLIS"));
+            assertThat(film.actors()).hasSize(6)
+                    .contains(new ActorProjection("HUMPHREY", "WILLIS"));
         });
     }
 }

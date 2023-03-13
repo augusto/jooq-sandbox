@@ -25,6 +25,11 @@ tasks.withType<Test>().configureEach {
     maxParallelForks = max(Runtime.getRuntime().availableProcessors() / 2, 1)
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
 dependencies {
     val junitVersion = "5.9.2"
 
@@ -95,9 +100,12 @@ jooq {
                         isRecords = true
                         isPojos = true
                         isImmutablePojos = false
+                        isDaos = true
 
+                        // Can generate spring annotations for the DAOs
                         isSpringAnnotations = false
 
+                        isFluentSetters = true
                         isPojosToString = true
                         isPojosAsJavaRecordClasses = true
                         isPojosEqualsAndHashCode = true

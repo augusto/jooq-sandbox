@@ -7,20 +7,24 @@ import org.jooq.SQLDialect;
 import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
 
+import javax.sql.DataSource;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Database {
-    private final static HikariDataSource datasource = initDataSource();
+    private static final HikariDataSource datasource = initDataSource();
 
+    private Database() {
+    }
 
     public static Settings defaultSettings() {
         return new Settings()
                 .withUpdateRecordVersion(true) // Defaults to true
                 .withUpdateRecordTimestamp(true) // Defaults to true
                 .withExecuteWithOptimisticLocking(true) // Defaults to false
-                .withExecuteWithOptimisticLockingExcludeUnversioned(false); // Defaults to false
+                .withExecuteWithOptimisticLockingExcludeUnversioned(false) // Defaults to false
+                .withReturnAllOnUpdatableRecord(true);
     }
 
     private static HikariDataSource initDataSource() {
@@ -35,14 +39,18 @@ public class Database {
         return new HikariDataSource(config);
     }
 
+    public static DataSource dataSource() {
+        return datasource;
+    }
+
     public static void withJooq(Consumer<DSLContext> fn) {
         withJooq(fn, defaultSettings());
     }
 
     public static void withJooq(Consumer<DSLContext> fn, Settings settings) {
         try (var conn = datasource.getConnection()) {
-            var dsl = DSL.using(conn, SQLDialect.POSTGRES, settings);
-            dsl.transaction((tx) -> fn.accept(tx.dsl()));
+            DSLContext dsl = DSL.using(conn, SQLDialect.POSTGRES, settings);
+            dsl.transaction(tx -> fn.accept(tx.dsl()));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -55,7 +63,7 @@ public class Database {
     public static <R> R withJooq(Function<DSLContext, R> fn, Settings settings) {
         try (var conn = datasource.getConnection()) {
             var dsl = DSL.using(conn, SQLDialect.POSTGRES, settings);
-            return dsl.transactionResult((tx) -> fn.apply(tx.dsl()));
+            return dsl.transactionResult(tx -> fn.apply(tx.dsl()));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
