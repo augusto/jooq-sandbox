@@ -1,18 +1,17 @@
 package com.example.jooq;
 
 import com.example.jooq.db.Tables;
-import com.example.jooq.db.tables.Actor;
+import com.example.jooq.db.tables.pojos.Actor;
 import com.example.jooq.db.tables.pojos.Film;
 import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static com.example.jooq.Database.withJooq;
-import static com.example.jooq.db.Tables.*;
-import static com.example.jooq.db.tables.Actor.ACTOR;
+import static com.example.jooq.db.Tables.FILM_ACTOR;
 import static com.example.jooq.db.tables.Film.FILM;
+import static com.example.jooq.db.tables.Actor.ACTOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jooq.impl.SQLDataType.INTEGER;
 
@@ -72,6 +71,43 @@ public class BasicSqlTest {
     }
 
     @Test
+    void flexible_api_to_fetch_data() {
+        withJooq((dsl) -> {
+            var selectActorById = dsl.select()
+                    .from(ACTOR)
+                    .where(ACTOR.ACTOR_ID.eq(1));
+
+            // Returns a Record<T> or null
+            assertThat(selectActorById.fetchOne()).isNotNull();
+            // Returns a Record or throws exception
+            assertThat(selectActorById.fetchSingle()).isNotNull();
+            // Returns an Optional<Record>
+            assertThat(selectActorById.fetchOptional()).isPresent();
+            // Returns the first record or null
+            assertThat(selectActorById.fetchAny()).isNotNull();
+        });
+    }
+
+    @Test
+    void flexible_api_to_fetch_data_into_pojos() {
+        withJooq((dsl) -> {
+            var selectActorById = dsl.select()
+                    .from(ACTOR)
+                    .where(ACTOR.ACTOR_ID.eq(1));
+
+            // Returns an Actor or null
+            assertThat(selectActorById.fetchOneInto(Actor.class)).isNotNull();
+            // Returns an Actor or throws exception
+            assertThat(selectActorById.fetchSingleInto(Actor.class)).isNotNull();
+            // Returns an Optional<Actor>
+            assertThat(selectActorById.fetchOptionalInto(Actor.class)).isPresent();
+            // Returns the first row as Actor or null
+            assertThat(selectActorById.fetchAnyInto(Actor.class)).isNotNull();
+        });
+    }
+
+
+    @Test
     void select_with_custom_mapper() {
         withJooq((dsl) -> {
 
@@ -96,12 +132,12 @@ public class BasicSqlTest {
             // values (?, ?)
             // on conflict ("actor_id") do update set "first_name" = ?, "last_name" = ?
             // returning "public"."actor"."actor_id"
-            var insertedRow = dsl.insertInto(Actor.ACTOR, ACTOR.FIRST_NAME, ACTOR.LAST_NAME)
+            var insertedRow = dsl.insertInto(ACTOR, ACTOR.FIRST_NAME, ACTOR.LAST_NAME)
                     .values("John", "Doe")
                     .onDuplicateKeyUpdate()
-                    .set(Actor.ACTOR.FIRST_NAME, "John")
-                    .set(Actor.ACTOR.LAST_NAME, "Doe")
-                    .returning(Actor.ACTOR.ACTOR_ID)
+                    .set(ACTOR.FIRST_NAME, "John")
+                    .set(ACTOR.LAST_NAME, "Doe")
+                    .returning(ACTOR.ACTOR_ID)
                     .fetchSingle();
 
             assertThat(insertedRow.getActorId()).isPositive();

@@ -7,7 +7,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
 
-class QueryExamplesTest {
+class BasicQueryExamplesTest {
     @Test
     fun `Query actors`() {
         Database.withJooq { create ->

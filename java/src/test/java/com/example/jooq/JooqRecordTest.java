@@ -1,6 +1,6 @@
 package com.example.jooq;
 
-import com.example.jooq.db.tables.pojos.Actor;
+import com.example.jooq.db.tables.records.ActorRecord;
 import com.example.jooq.db.tables.records.FilmRecord;
 import org.junit.jupiter.api.Test;
 
@@ -22,14 +22,22 @@ public class JooqRecordTest {
     @Test
     void create_update_delete_record() {
         withJooq((dsl) -> {
-            var newActorPojo = new Actor(null, "John", "Doe", null);
-            var actorRecord = dsl.newRecord(ACTOR, newActorPojo);
+            ActorRecord actorRecord = dsl.newRecord(ACTOR);
+            actorRecord.setFirstName("John");
+            actorRecord.setLastName("Doe");
             actorRecord.insert();
+            assertThat(actorRecord.getActorId()).isPositive();
 
-            actorRecord.setLastName("Smith");
-            actorRecord.update();
+            // Read
+            ActorRecord existingActor = dsl.fetchSingle(ACTOR, ACTOR.ACTOR_ID.eq(actorRecord.getActorId()));
+            assertThat(existingActor.getFirstName()).isEqualTo("John");
 
-            actorRecord.delete();
+            // Update
+            existingActor.setLastName("Smith");
+            existingActor.update();
+
+            // Delete
+            existingActor.delete();
         });
     }
 }
